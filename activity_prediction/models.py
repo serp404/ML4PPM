@@ -18,7 +18,8 @@ torch.backends.cudnn.benchmark = False
 class LstmModel(nn.Module):
     def __init__(
         self, 
-        vocab_size, 
+        vocab_size,
+        output_size,
         n_features, 
         emb_size=128, 
         hid_size=64, 
@@ -28,6 +29,7 @@ class LstmModel(nn.Module):
     ):
         super(LstmModel, self).__init__()
         self.vocab_size = vocab_size
+        self.output_size = output_size
         self.n_features = n_features
         self.emb_size = emb_size
         self.hid_size = hid_size
@@ -59,7 +61,7 @@ class LstmModel(nn.Module):
             nn.Linear(in_features=hid_size, out_features=hid_size),
             nn.Dropout(p=0.2),
             nn.ELU(),
-            nn.Linear(in_features=hid_size, out_features=vocab_size),
+            nn.Linear(in_features=hid_size, out_features=output_size),
         )
 
 
@@ -108,7 +110,8 @@ class LstmModel(nn.Module):
 class GruLstmModel(nn.Module):
     def __init__(
         self, 
-        vocab_size, 
+        vocab_size,
+        output_size,
         n_features, 
         emb_size=128, 
         hid_size=64, 
@@ -118,6 +121,7 @@ class GruLstmModel(nn.Module):
     ):
         super(GruLstmModel, self).__init__()
         self.vocab_size = vocab_size
+        self.output_size = output_size
         self.n_features = n_features
         self.emb_size = emb_size
         self.hid_size = hid_size
@@ -148,7 +152,7 @@ class GruLstmModel(nn.Module):
             nn.Linear(in_features=hid_size, out_features=hid_size),
             nn.Dropout(p=0.2),
             nn.ELU(),
-            nn.Linear(in_features=hid_size, out_features=vocab_size),
+            nn.Linear(in_features=hid_size, out_features=output_size),
         )
 
 
@@ -195,7 +199,8 @@ class GruLstmModel(nn.Module):
 class LstmAttentionModel(nn.Module):
     def __init__(
         self,
-        vocab_size, 
+        vocab_size,
+        output_size,
         n_features, 
         emb_size=128, 
         hid_size=64, 
@@ -206,6 +211,7 @@ class LstmAttentionModel(nn.Module):
         super(LstmAttentionModel, self).__init__()
         
         self.vocab_size = vocab_size
+        self.output_size = output_size
         self.n_features = n_features
         self.emb_size = emb_size
         self.hid_size = hid_size
@@ -241,7 +247,7 @@ class LstmAttentionModel(nn.Module):
             nn.Linear(in_features=hid_size * 2, out_features=hid_size * 2),
             nn.ReLU(),
             nn.Dropout(p=0.2),
-            nn.Linear(in_features=hid_size * 2, out_features=vocab_size)
+            nn.Linear(in_features=hid_size * 2, out_features=output_size)
         )
 
 
@@ -263,10 +269,11 @@ class LstmAttentionModel(nn.Module):
 
         if seq_len > 1:
             prefix = rnn_states[:, :-1, :]
-            last = hn[-1]
-            return self.head_layers(self.attention(prefix, last))
+        else:
+            prefix = torch.zeros((batch_size, 1, self.hid_size), device=model_device)
 
-        return self.head_layers(hn[-1])
+        last = hn[-1]
+        return self.head_layers(self.attention(prefix, last))
 
 
     def get_prefix_embedding(self, prefix_batch):
