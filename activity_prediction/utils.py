@@ -79,7 +79,7 @@ def GenTimeFeatures(timestamp: str, ts_applyer=None):
         value = ts_applyer(ts.value)
 
     weekday = [0] * 7
-    weekday[ts.day_of_week] = 1
+    weekday[ts.dayofweek] = 1
 
     intervals = [
         1 if 23 < ts.hour <= 5 else 0,
